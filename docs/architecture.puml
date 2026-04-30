@@ -1,0 +1,42 @@
+@startuml system_architecture
+skinparam componentStyle rectangle
+
+package "Browser Agent (TS)" {
+  [Input UI] as input_ui
+  [Plan Generator] as plan_gen
+  [Plan Executor] as plan_exec
+}
+
+package "External Services" {
+  [llama-server] as llama
+}
+
+package "Go Server" {
+  [Tool Router] as tool_router
+  [Playwright Scraper] as playwright
+  [Google Places API] as google_places
+  [Graph Writer] as graph_writer
+  [SSE Stream] as sse
+}
+
+package "Database" {
+  [Neo4j] as neo4j
+}
+
+' Browser internal flow
+input_ui --> plan_gen : "user query"
+plan_gen --> llama : "generate plan"
+plan_gen --> plan_exec : "structured plan"
+
+' Browser to Go server
+plan_exec --> tool_router : "execute plan"
+sse --> plan_exec : "SSE progress"
+
+' Go server internals
+tool_router --> playwright : "scrape URLs"
+tool_router --> google_places : "search venues"
+tool_router --> graph_writer : "typed JSON"
+graph_writer --> neo4j : "upsert entities"
+tool_router --> sse : "stream events"
+
+@enduml

@@ -29,4 +29,11 @@ services:
       - neo4j
     restart: unless-stopped
 
+  plantuml:
+    image: plantuml/plantuml-server:jetty
+    container_name: plantuml
+    ports:
+      - "7070:8080"
+    restart: unless-stopped
+
 
