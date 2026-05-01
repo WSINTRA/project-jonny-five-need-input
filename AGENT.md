@@ -2,44 +2,52 @@
 
 ## Project Overview
 
-Two-microservice AI research platform. Takes a location + topic, browses the web, generates summaries, stores everything in a Neo4j knowledge graph. Research types are extensible via plugins.
+General-purpose AI research platform. Takes a location + topic, browses the web, generates summaries, stores everything in a Neo4j knowledge graph.
 
 **Services:**
-- **Server** (`server/`) — Go: REST API, web browsing, LLM summarization, graph storage
-- **Agent** (`agent/`) — Python + llama.cpp: NLP intent parsing, orchestration, natural language responses
+- **Agent** (`agent/`) — TypeScript browser app: plan generation (llama-server), plan orchestration, SSE consumption
+- **Server** (`server/`) — Go: REST API, tool execution (Playwright, Google Places), graph writes, SSE streaming
 
-**Shared:** Neo4j Community Edition
+**Shared:** Neo4j Community Edition, llama-server (local LLM inference)
+
+## Branch Workflow
+
+- **`main`** — Stable releases only. No direct pushes.
+- **`develop`** — Active development branch. All work happens here.
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `PLAN.md` | Master architecture plan and phase tracking |
-| `PLAN_AGENT.md` | Agent-specific implementation plan |
+| `PLAN_AGENT.md` | Agent-specific plan (knowledge acquirer architecture) |
 | `PLAN_SERVER.md` | Server-specific implementation plan |
-| `STATUS_AGENT.md` | Agent progress (all 8 tasks done) |
-| `STATUS_SERVER.md` | Server progress (Phase 1 done) |
-| `docker-compose.yml` | Neo4j + llama.cpp services |
+| `STATUS_AGENT.md` | Agent progress tracker |
+| `STATUS_SERVER.md` | Server progress tracker |
+| `docker-compose.yml` | Neo4j, server, PlantUML services |
 | `.env` | Root environment config |
+| `docs/` | PlantUML diagrams (.puml source + rendered PNG) |
+
+## Key Architecture Decisions
+
+| Decision | Choice |
+|----------|--------|
+| Graph schema | Hybrid: base schema + plugin extensions |
+| Research loop | Declarative plan, then execute |
+| Runtime | Browser UI (TS), llama-server direct, Go server for tools |
+| Stopping condition | Plan scope + diminishing returns |
+| Tool selection | Tool registry + LLM routing |
+| Agent-to-graph contract | Typed JSON entities → graph writer |
+| Schema definition | Plugin-defined schema |
+| Tool execution | Go server endpoints |
+| Communication | SSE from Go server → browser |
+| Entity dedup | Deterministic key merge + LLM fallback |
 
 ## Current State
 
-- **Agent**: Phase 7 complete — 91 tests passing, REPL with fetch/prompt/ask/query/research commands
+- **Agent**: TS scaffolding created (Vite, TypeScript). Python agent removed.
 - **Server**: Phase 1 complete — health check, Neo4j client, graceful shutdown
-- **Blocked**: Agent commands (`query`, `research`, `status`) call server API endpoints that don't exist yet (need Phase 2 Graph Layer)
-
-## Phases
-
-| # | Phase | Status |
-|---|-------|--------|
-| 1 | Foundation | Done |
-| 2 | Graph Layer | Not started |
-| 3 | Plugin System | Not started |
-| 4 | Web Browsing | Not started |
-| 5 | AI Pipeline | Not started |
-| 6 | Orchestrator | Not started |
-| 7 | NLP Agent | Done |
-| 8 | Polish | Not started |
+- **Diagrams**: PlantUML server on port 7070, architecture diagram in `docs/`
 
 ## Running Locally
 
@@ -47,9 +55,14 @@ Two-microservice AI research platform. Takes a location + topic, browses the web
 # Start infrastructure
 docker-compose up -d
 
-# Run agent
-cd agent && uv run python -m src.main
+# Agent dev server
+cd agent && npm install && npm run dev
 
 # Run server
 cd server && go run ./cmd/main.go
+
+# Render PlantUML diagram
+curl -s http://localhost:7070/png -H 'Content-Type: text/plain' \
+  --data-binary @docs/your-diagram.puml \
+  --output docs/your-diagram.png
 ```

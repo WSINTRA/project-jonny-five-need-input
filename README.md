@@ -14,6 +14,17 @@ Build a knowledge acquirer agent that can research specific queries and store st
 - **Server** — Go REST API, tool execution, graph writes
 - **Database** — Neo4j knowledge graph
 - **LLM** — llama-server (local inference)
+- **Diagrams** — PlantUML server (Docker, port 7070)
+
+## Diagrams
+
+PlantUML diagrams live in `docs/`. Render with:
+
+```bash
+curl -s http://localhost:7070/png -H 'Content-Type: text/plain' \
+  --data-binary @docs/your-diagram.puml \
+  --output docs/your-diagram.png
+```
 
 ## Status
 
