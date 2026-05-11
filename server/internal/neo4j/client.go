@@ -29,7 +29,7 @@ func New(uri, user, pass string) (*Client, error) {
 }
 
 func (c *Client) Check(ctx context.Context) error {
-	_, err := neo4j.ExecuteQuery[*neo4j.EagerResult](
+	_, err := neo4j.ExecuteQuery(
 		ctx,
 		c.driver,
 		"RETURN 1 AS ping",
